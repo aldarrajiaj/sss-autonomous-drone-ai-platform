@@ -13,33 +13,50 @@ telemetry_data = {
     "altitude": 0
 }
 
+mission_waypoints = []
+mission_state = {
+    "uploaded": False,
+    "started": False,
+    "message": "No mission loaded"
+}
+
 @app.on_event("startup")
 async def startup():
-    print("Connecting to drone...")
-    await drone.connect(system_address="udp://:14540")
+    print("Starting background drone connection task...")
 
-    async for state in drone.core.connection_state():
-        if state.is_connected:
-            print("Drone connected!")
-            telemetry_data["connected"] = True
-            break
+    async def connect_and_track():
+        try:
+            print("Connecting to drone...")
+            await drone.connect(system_address="udp://:14540")
 
-    async def track_armed():
-        async for is_armed in drone.telemetry.armed():
-            telemetry_data["armed"] = is_armed
+            async for state in drone.core.connection_state():
+                if state.is_connected:
+                    print("Drone connected!")
+                    telemetry_data["connected"] = True
+                    break
 
-    async def track_in_air():
-        async for in_air in drone.telemetry.in_air():
-            telemetry_data["in_air"] = in_air
+            async def track_armed():
+                async for is_armed in drone.telemetry.armed():
+                    telemetry_data["armed"] = is_armed
 
-    async def track_altitude():
-        async for position in drone.telemetry.position():
-            telemetry_data["altitude"] = round(position.relative_altitude_m, 2)
+            async def track_in_air():
+                async for in_air in drone.telemetry.in_air():
+                    telemetry_data["in_air"] = in_air
 
-    asyncio.create_task(track_armed())
-    asyncio.create_task(track_in_air())
-    asyncio.create_task(track_altitude())
+            async def track_altitude():
+                async for position in drone.telemetry.position():
+                    telemetry_data["altitude"] = round(position.relative_altitude_m, 2)
 
+            asyncio.create_task(track_armed())
+            asyncio.create_task(track_in_air())
+            asyncio.create_task(track_altitude())
+
+        except Exception as e:
+            print(f"Drone connection background task error: {e}")
+            telemetry_data["connected"] = False
+
+    asyncio.create_task(connect_and_track())
+    print("Web platform startup complete. Drone connection will continue in background.")
 
 
 @app.get("/arm")
@@ -67,6 +84,79 @@ async def land():
 
 
 from fastapi.responses import HTMLResponse
+
+@app.post("/add_waypoint")
+async def add_waypoint(latitude: float, longitude: float, altitude: float):
+    waypoint = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "altitude": altitude
+    }
+    mission_waypoints.append(waypoint)
+    mission_state["message"] = f"Waypoint added: {latitude}, {longitude}, {altitude}m"
+    return {
+        "status": "waypoint_added",
+        "waypoint": waypoint,
+        "total_waypoints": len(mission_waypoints)
+    }
+
+
+@app.post("/clear_mission")
+async def clear_mission():
+    mission_waypoints.clear()
+    mission_state["uploaded"] = False
+    mission_state["started"] = False
+    mission_state["message"] = "Mission cleared"
+    return {
+        "status": "mission_cleared",
+        "total_waypoints": len(mission_waypoints)
+    }
+
+
+@app.get("/mission_status")
+async def mission_status():
+    return {
+        "waypoints": mission_waypoints,
+        "mission_state": mission_state
+    }
+
+
+@app.post("/upload_mission")
+async def upload_mission():
+    if len(mission_waypoints) == 0:
+        mission_state["uploaded"] = False
+        mission_state["message"] = "Cannot upload mission: no waypoints added"
+        return {
+            "status": "failed",
+            "message": mission_state["message"]
+        }
+
+    mission_state["uploaded"] = True
+    mission_state["started"] = False
+    mission_state["message"] = f"Mission uploaded with {len(mission_waypoints)} waypoint(s)"
+    return {
+        "status": "mission_uploaded",
+        "total_waypoints": len(mission_waypoints),
+        "waypoints": mission_waypoints
+    }
+
+
+@app.post("/start_mission")
+async def start_mission():
+    if not mission_state["uploaded"]:
+        mission_state["message"] = "Cannot start mission: mission not uploaded"
+        return {
+            "status": "failed",
+            "message": mission_state["message"]
+        }
+
+    mission_state["started"] = True
+    mission_state["message"] = "Mission started in simulation mode"
+    return {
+        "status": "mission_started",
+        "message": mission_state["message"],
+        "waypoints": mission_waypoints
+    }
 
 @app.get("/control", response_class=HTMLResponse)
 def control_ui():
@@ -97,6 +187,89 @@ def control_ui():
         });
     }
     </script>
+
+<hr>
+
+<h2>Mission Planner</h2>
+
+<label>Latitude:</label>
+<input id="missionLat" type="number" step="0.0001" value="38.8895">
+
+<label>Longitude:</label>
+<input id="missionLon" type="number" step="0.0001" value="-77.0353">
+
+<label>Altitude (m):</label>
+<input id="missionAlt" type="number" step="1" value="20">
+
+<br><br>
+
+<button onclick="addWaypoint()">Add Waypoint</button>
+<button onclick="uploadMission()">Upload Mission</button>
+<button onclick="startMission()">Start Mission</button>
+<button onclick="clearMission()">Clear Mission</button>
+
+<h3>Mission Status</h3>
+<div id="missionStatus">No mission loaded</div>
+
+<h3>Waypoint List</h3>
+<pre id="waypointList">[]</pre>
+
+<script>
+async function addWaypoint() {
+    const lat = document.getElementById("missionLat").value;
+    const lon = document.getElementById("missionLon").value;
+    const alt = document.getElementById("missionAlt").value;
+
+    const response = await fetch(`/add_waypoint?latitude=${lat}&longitude=${lon}&altitude=${alt}`, {
+        method: "POST"
+    });
+
+    const data = await response.json();
+    document.getElementById("missionStatus").innerText = data.status;
+    refreshMissionStatus();
+}
+
+async function uploadMission() {
+    const response = await fetch("/upload_mission", {
+        method: "POST"
+    });
+
+    const data = await response.json();
+    document.getElementById("missionStatus").innerText = data.message || data.status;
+    refreshMissionStatus();
+}
+
+async function startMission() {
+    const response = await fetch("/start_mission", {
+        method: "POST"
+    });
+
+    const data = await response.json();
+    document.getElementById("missionStatus").innerText = data.message || data.status;
+    refreshMissionStatus();
+}
+
+async function clearMission() {
+    const response = await fetch("/clear_mission", {
+        method: "POST"
+    });
+
+    const data = await response.json();
+    document.getElementById("missionStatus").innerText = data.status;
+    refreshMissionStatus();
+}
+
+async function refreshMissionStatus() {
+    const response = await fetch("/mission_status");
+    const data = await response.json();
+
+    document.getElementById("missionStatus").innerText = data.mission_state.message;
+    document.getElementById("waypointList").innerText = JSON.stringify(data.waypoints, null, 2);
+}
+
+setInterval(refreshMissionStatus, 2000);
+refreshMissionStatus();
+</script>
 
     </body>
     </html>
@@ -416,6 +589,75 @@ async def home():
     color: #d1fae5;
     font-weight: bold;
 }
+.missionPlannerBox {
+    margin: 30px auto;
+    max-width: 900px;
+    background: #111827;
+    border: 1px solid #38bdf8;
+    border-radius: 12px;
+    padding: 20px;
+    color: white;
+}
+
+.missionTitle {
+    color: #38bdf8;
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.missionSubtext {
+    text-align: center;
+    color: #cbd5e1;
+    margin-bottom: 18px;
+}
+
+.missionInputs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.missionInputs label {
+    color: #facc15;
+    font-weight: bold;
+}
+
+.missionInputs input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #020617;
+    color: white;
+}
+
+.missionButtons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.missionInfoGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.missionInfoGrid pre {
+    background: #020617;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 80px;
+    color: #e5e7eb;
+    white-space: pre-wrap;
+}
+
         </style>
     </head>
     <body>
@@ -498,6 +740,39 @@ async def home():
     </div>
  </div>
 
+<div class="missionPlannerBox">
+    <div class="missionTitle">Mission Planner</div>
+    <p class="missionSubtext">Create a simulated waypoint mission before uploading or starting it.</p>
+
+    <div class="missionInputs">
+        <label>Latitude</label>
+        <input id="missionLat" type="number" step="0.0001" value="38.8895">
+
+        <label>Longitude</label>
+        <input id="missionLon" type="number" step="0.0001" value="-77.0353">
+
+        <label>Altitude (m)</label>
+        <input id="missionAlt" type="number" step="1" value="20">
+    </div>
+
+    <div class="missionButtons">
+        <button class="button primary" onclick="addWaypoint()">Add Waypoint</button>
+        <button class="button primary" onclick="uploadMission()">Upload Mission</button>
+        <button class="button primary" onclick="startMission()">Start Mission</button>
+        <button class="button danger" onclick="clearMission()">Clear Mission</button>
+    </div>
+
+    <div class="missionInfoGrid">
+        <div>
+            <strong>Mission Status</strong>
+            <pre id="missionStatusBox">No mission loaded</pre>
+        </div>
+        <div>
+            <strong>Waypoint List</strong>
+            <pre id="waypointListBox">[]</pre>
+        </div>
+    </div>
+</div>
         <script>
             let commandHistory = [];
 
@@ -603,6 +878,61 @@ document.getElementById('altitudeBar').style.width =
 
             setInterval(updateStatus, 1000);
             updateStatus();
+async function addWaypoint() {
+    const lat = document.getElementById("missionLat").value;
+    const lon = document.getElementById("missionLon").value;
+    const alt = document.getElementById("missionAlt").value;
+
+    const response = await fetch(`/add_waypoint?latitude=${lat}&longitude=${lon}&altitude=${alt}`, {
+        method: "POST"
+    });
+
+    const data = await response.json();
+    document.getElementById("missionStatusBox").innerText = data.status;
+    refreshMissionStatus();
+}
+
+async function uploadMission() {
+    const response = await fetch("/upload_mission", {
+        method: "POST"
+    });
+
+    const data = await response.json();
+    document.getElementById("missionStatusBox").innerText = data.message || data.status;
+    refreshMissionStatus();
+}
+
+async function startMission() {
+    const response = await fetch("/start_mission", {
+        method: "POST"
+    });
+
+    const data = await response.json();
+    document.getElementById("missionStatusBox").innerText = data.message || data.status;
+    refreshMissionStatus();
+}
+
+async function clearMission() {
+    const response = await fetch("/clear_mission", {
+        method: "POST"
+    });
+
+    const data = await response.json();
+    document.getElementById("missionStatusBox").innerText = data.status;
+    refreshMissionStatus();
+}
+
+async function refreshMissionStatus() {
+    const response = await fetch("/mission_status");
+    const data = await response.json();
+
+    document.getElementById("missionStatusBox").innerText = data.mission_state.message;
+    document.getElementById("waypointListBox").innerText = JSON.stringify(data.waypoints, null, 2);
+}
+
+setInterval(refreshMissionStatus, 2000);
+refreshMissionStatus();
+
         </script>
     </body>
     </html>
