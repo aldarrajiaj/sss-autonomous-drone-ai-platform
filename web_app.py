@@ -20,6 +20,78 @@ mission_state = {
     "message": "No mission loaded"
 }
 
+# Version 3 - Swarm Control Foundation
+# Simulation-only fleet state for safe swarm software development.
+# This does not send commands to real drones.
+swarm_fleet = {
+    1: {
+        "drone_id": "SSS-DRONE-01",
+        "mav_sys_id": 1,
+        "connected": False,
+        "armed": False,
+        "in_air": False,
+        "altitude": 0,
+        "battery": "SIM",
+        "mission_state": "idle",
+	"formation": "none",
+        "selected": False
+    },
+    2: {
+        "drone_id": "SSS-DRONE-02",
+        "mav_sys_id": 2,
+        "connected": False,
+        "armed": False,
+        "in_air": False,
+        "altitude": 0,
+        "battery": "SIM",
+        "mission_state": "idle",
+	"formation": "none",
+        "selected": False
+    },
+    3: {
+        "drone_id": "SSS-DRONE-03",
+        "mav_sys_id": 3,
+        "connected": False,
+        "armed": False,
+        "in_air": False,
+        "altitude": 0,
+        "battery": "SIM",
+        "mission_state": "idle",
+	"formation": "none",
+        "selected": False
+    },
+    4: {
+        "drone_id": "SSS-DRONE-04",
+        "mav_sys_id": 4,
+        "connected": False,
+        "armed": False,
+        "in_air": False,
+        "altitude": 0,
+        "battery": "SIM",
+        "mission_state": "idle",
+	"formation": "none",
+        "selected": False
+    },
+    5: {
+        "drone_id": "SSS-DRONE-05",
+        "mav_sys_id": 5,
+        "connected": False,
+        "armed": False,
+        "in_air": False,
+        "altitude": 0,
+        "battery": "SIM",
+        "mission_state": "idle",
+	"formation": "none",
+        "selected": False
+    }
+}
+
+swarm_status = {
+    "mode": "simulation",
+    "total_drones": 5,
+    "selected_drones": [],
+    "message": "Swarm Control Foundation initialized in simulation mode"
+}
 @app.on_event("startup")
 async def startup():
     print("Starting background drone connection task...")
@@ -120,6 +192,167 @@ async def mission_status():
         "mission_state": mission_state
     }
 
+
+@app.get("/swarm_status")
+async def get_swarm_status():
+    return {
+        "swarm_status": swarm_status,
+        "fleet": list(swarm_fleet.values())
+    }
+
+@app.post("/select_drone")
+async def select_drone(drone_number: int):
+    if drone_number not in swarm_fleet:
+        swarm_status["message"] = f"Drone {drone_number} not found in swarm"
+        return {
+            "status": "failed",
+            "message": swarm_status["message"],
+            "selected_drones": swarm_status["selected_drones"]
+        }
+
+    for drone in swarm_fleet.values():
+        drone["selected"] = False
+
+    swarm_fleet[drone_number]["selected"] = True
+    swarm_status["selected_drones"] = [drone_number]
+    swarm_status["message"] = f"Selected {swarm_fleet[drone_number]['drone_id']}"
+
+    return {
+        "status": "drone_selected",
+        "message": swarm_status["message"],
+        "selected_drones": swarm_status["selected_drones"],
+        "drone": swarm_fleet[drone_number]
+    }
+
+@app.post("/select_all_drones")
+async def select_all_drones():
+    for drone in swarm_fleet.values():
+        drone["selected"] = True
+
+    swarm_status["selected_drones"] = list(swarm_fleet.keys())
+    swarm_status["message"] = "All swarm drones selected"
+
+    return {
+        "status": "all_drones_selected",
+        "message": swarm_status["message"],
+        "selected_drones": swarm_status["selected_drones"],
+        "fleet": list(swarm_fleet.values())
+    }
+
+@app.post("/clear_selection")
+async def clear_selection():
+    for drone in swarm_fleet.values():
+        drone["selected"] = False
+
+    swarm_status["selected_drones"] = []
+    swarm_status["message"] = "Swarm drone selection cleared"
+
+    return {
+        "status": "selection_cleared",
+        "message": swarm_status["message"],
+        "selected_drones": swarm_status["selected_drones"],
+        "fleet": list(swarm_fleet.values())
+    }
+
+@app.post("/emergency_land_selected")
+async def emergency_land_selected():
+    selected = swarm_status["selected_drones"]
+
+    if len(selected) == 0:
+        swarm_status["message"] = "No drone selected for emergency landing"
+        return {
+            "status": "failed",
+            "message": swarm_status["message"],
+            "selected_drones": selected,
+            "fleet": list(swarm_fleet.values())
+        }
+
+    for drone_number in selected:
+        if drone_number in swarm_fleet:
+            swarm_fleet[drone_number]["armed"] = False
+            swarm_fleet[drone_number]["in_air"] = False
+            swarm_fleet[drone_number]["altitude"] = 0
+            swarm_fleet[drone_number]["mission_state"] = "emergency_landed"
+
+    swarm_status["message"] = "Emergency land command sent to selected simulated drone(s)"
+
+    return {
+        "status": "emergency_land_selected",
+        "message": swarm_status["message"],
+        "selected_drones": selected,
+        "fleet": list(swarm_fleet.values())
+    }
+
+@app.post("/emergency_land_all")
+async def emergency_land_all():
+    for drone in swarm_fleet.values():
+        drone["armed"] = False
+        drone["in_air"] = False
+        drone["altitude"] = 0
+        drone["mission_state"] = "emergency_landed"
+
+    swarm_status["selected_drones"] = list(swarm_fleet.keys())
+    swarm_status["message"] = "Emergency land command sent to all simulated swarm drones"
+
+    for drone in swarm_fleet.values():
+        drone["selected"] = True
+
+    return {
+        "status": "emergency_land_all",
+        "message": swarm_status["message"],
+        "selected_drones": swarm_status["selected_drones"],
+        "fleet": list(swarm_fleet.values())
+    }
+
+@app.post("/staggered_takeoff_sim")
+async def staggered_takeoff_sim():
+    base_altitude = 10
+
+    for index, drone_number in enumerate(swarm_fleet.keys()):
+        target_altitude = base_altitude + (index * 2)
+
+        swarm_fleet[drone_number]["connected"] = True
+        swarm_fleet[drone_number]["armed"] = True
+        swarm_fleet[drone_number]["in_air"] = True
+        swarm_fleet[drone_number]["altitude"] = target_altitude
+        swarm_fleet[drone_number]["mission_state"] = "staggered_takeoff_complete"
+
+    swarm_status["selected_drones"] = list(swarm_fleet.keys())
+    swarm_status["message"] = "Staggered takeoff simulation completed for all swarm drones"
+
+    for drone in swarm_fleet.values():
+        drone["selected"] = True
+
+    return {
+        "status": "staggered_takeoff_complete",
+        "message": swarm_status["message"],
+        "selected_drones": swarm_status["selected_drones"],
+        "fleet": list(swarm_fleet.values())
+    }
+
+@app.post("/formation_hold_sim")
+async def formation_hold_sim():
+    for drone_number, drone in swarm_fleet.items():
+        drone["connected"] = True
+        drone["armed"] = True
+        drone["in_air"] = True
+
+        if drone["altitude"] == 0:
+            drone["altitude"] = 10
+
+        drone["mission_state"] = "formation_hold"
+        drone["formation"] = "square_grid_hold"
+        drone["selected"] = True
+
+    swarm_status["selected_drones"] = list(swarm_fleet.keys())
+    swarm_status["message"] = "Formation hold simulation active in square grid pattern"
+
+    return {
+        "status": "formation_hold_active",
+        "message": swarm_status["message"],
+        "selected_drones": swarm_status["selected_drones"],
+        "fleet": list(swarm_fleet.values())
+    }
 
 @app.post("/upload_mission")
 async def upload_mission():
@@ -937,3 +1170,246 @@ refreshMissionStatus();
     </body>
     </html>
     """
+
+
+@app.get("/swarm_dashboard", response_class=HTMLResponse)
+async def swarm_dashboard():
+    return """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSS AI Swarm Drone Software</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #111827;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            margin-bottom: 25px;
+        }
+
+        .panel {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .button:hover {
+            background-color: #1d4ed8;
+        }
+
+        .danger {
+            background-color: #dc2626;
+        }
+
+        .danger:hover {
+            background-color: #991b1b;
+        }
+
+        .safe {
+            background-color: #16a34a;
+        }
+
+        .safe:hover {
+            background-color: #15803d;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 8px;
+            margin-right: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #374151;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #0f172a;
+            color: #38bdf8;
+        }
+
+        .status-box {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 12px;
+            color: #e5e7eb;
+        }
+
+        .selected {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .not-selected {
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <h1>SSS AI Swarm Drone Software</h1>
+    <div class="subtitle">Version 3 — Swarm Control Foundation | Simulation Mode</div>
+
+    <div class="panel">
+        <h2>Swarm Mission Status</h2>
+        <div class="status-box" id="swarmMessage">Loading swarm status...</div>
+    </div>
+
+    <div class="panel">
+        <h2>Swarm Control Actions</h2>
+
+        <select id="droneSelect">
+            <option value="1">SSS-DRONE-01 | MAV_SYS_ID 1</option>
+            <option value="2">SSS-DRONE-02 | MAV_SYS_ID 2</option>
+            <option value="3">SSS-DRONE-03 | MAV_SYS_ID 3</option>
+            <option value="4">SSS-DRONE-04 | MAV_SYS_ID 4</option>
+            <option value="5">SSS-DRONE-05 | MAV_SYS_ID 5</option>
+        </select>
+
+        <button class="button" onclick="selectDrone()">Select Drone</button>
+        <button class="button" onclick="selectAllDrones()">Select All</button>
+        <button class="button" onclick="clearSelection()">Clear Selection</button>
+        <br><br>
+
+        <button class="button danger" onclick="emergencyLandSelected()">Emergency Land Selected</button>
+        <button class="button danger" onclick="emergencyLandAll()">Emergency Land All</button>
+        <br><br>
+
+        <button class="button safe" onclick="staggeredTakeoffSim()">Staggered Takeoff Simulation</button>
+        <button class="button safe" onclick="formationHoldSim()">Formation Hold Simulation</button>
+    </div>
+
+    <div class="panel">
+        <h2>Fleet Panel</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Drone ID</th>
+                    <th>MAV_SYS_ID</th>
+                    <th>Connected</th>
+                    <th>Armed</th>
+                    <th>In Air</th>
+                    <th>Altitude</th>
+                    <th>Battery</th>
+                    <th>Mission State</th>
+                    <th>Formation</th>
+                    <th>Selected</th>
+                </tr>
+            </thead>
+            <tbody id="fleetTable">
+                <tr>
+                    <td colspan="10">Loading fleet data...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+<script>
+async function refreshSwarmStatus() {
+    const response = await fetch("/swarm_status");
+    const data = await response.json();
+
+    document.getElementById("swarmMessage").innerText =
+        data.swarm_status.message +
+        " | Mode: " + data.swarm_status.mode +
+        " | Total Drones: " + data.swarm_status.total_drones +
+        " | Selected: " + JSON.stringify(data.swarm_status.selected_drones);
+
+    const fleetTable = document.getElementById("fleetTable");
+    fleetTable.innerHTML = "";
+
+    data.fleet.forEach(drone => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${drone.drone_id}</td>
+            <td>${drone.mav_sys_id}</td>
+            <td>${drone.connected}</td>
+            <td>${drone.armed}</td>
+            <td>${drone.in_air}</td>
+            <td>${drone.altitude}</td>
+            <td>${drone.battery}</td>
+            <td>${drone.mission_state}</td>
+            <td>${drone.formation}</td>
+            <td class="${drone.selected ? "selected" : "not-selected"}">${drone.selected}</td>
+        `;
+
+        fleetTable.appendChild(row);
+    });
+}
+
+async function selectDrone() {
+    const droneNumber = document.getElementById("droneSelect").value;
+    await fetch(`/select_drone?drone_number=${droneNumber}`, { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function selectAllDrones() {
+    await fetch("/select_all_drones", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function clearSelection() {
+    await fetch("/clear_selection", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function emergencyLandSelected() {
+    await fetch("/emergency_land_selected", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function emergencyLandAll() {
+    await fetch("/emergency_land_all", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function staggeredTakeoffSim() {
+    await fetch("/staggered_takeoff_sim", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function formationHoldSim() {
+    await fetch("/formation_hold_sim", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+setInterval(refreshSwarmStatus, 2000);
+refreshSwarmStatus();
+</script>
+
+</body>
+</html>
+"""
