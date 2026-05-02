@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 web_app_v1_backup.py
 web_app_v2_backend_backup.py
+
+README_before_version3_update.md
+web_app_before_swarm_dashboard.py
+web_app_v2_backup_before_v3.py
