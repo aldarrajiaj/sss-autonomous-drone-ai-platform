@@ -210,10 +210,6 @@ QGroundControl may still be used later as a temporary safety and setup tool duri
 
 ### Version 3 Screenshots
 
-#### Swarm Dashboard Loaded
-
-![Swarm Dashboard Loaded](screenshots/version3/01_swarm_dashboard_loaded.png)
-
 #### Select Drone Test
 
 ![Select Drone Test](screenshots/version3/02_select_drone_test.png)
