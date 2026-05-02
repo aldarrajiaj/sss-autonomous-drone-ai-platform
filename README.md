@@ -157,3 +157,80 @@ Planned improvements include:
 
 Ammar Aldarraji  
 U.S. Army Veteran | Cybersecurity Analyst | Drone AI / Autonomous Systems Portfolio Project
+
+---
+
+## Version 3 — Swarm Control Foundation
+
+Version 3 begins the transition from a single-drone command dashboard into the SSS AI Swarm Drone Software platform. This version is still simulation-first and does not send real swarm flight commands to physical drones.
+
+The goal of Version 3 is to build the software foundation for future 5-to-50 drone swarm operations while keeping all testing safe inside simulation.
+
+### Version 3 Features
+
+- Professional SSS AI Swarm Drone Software dashboard
+- Simulation-only 5-drone swarm fleet panel
+- Drone ID and MAV_SYS_ID display
+- Per-drone status tracking:
+  - Connected
+  - Armed
+  - In Air
+  - Altitude
+  - Battery placeholder
+  - Mission state
+  - Formation state
+  - Selection state
+- Select single drone
+- Select all drones
+- Clear drone selection
+- Emergency land selected drone simulation
+- Emergency land all drones simulation
+- Staggered takeoff simulation
+- Formation hold simulation
+- Swarm mission status display
+- Safe backend API routes for swarm state management
+
+### Version 3 Backend Routes
+
+- `GET /swarm_status`
+- `POST /select_drone`
+- `POST /select_all_drones`
+- `POST /clear_selection`
+- `POST /emergency_land_selected`
+- `POST /emergency_land_all`
+- `POST /staggered_takeoff_sim`
+- `POST /formation_hold_sim`
+- `GET /swarm_dashboard`
+
+### Version 3 Safety Note
+
+All Version 3 swarm actions are simulation-only. The emergency land, staggered takeoff, and formation hold functions update the simulated software state only. They do not send real MAVSDK, MAVLink, PX4, or physical drone flight commands.
+
+QGroundControl may still be used later as a temporary safety and setup tool during real drone testing, but the long-term goal is to continue building the company-owned SSS AI Swarm Drone Software platform.
+
+### Version 3 Screenshots
+
+#### Select Drone Test
+
+![Select Drone Test](screenshots/version3/02_select_drone_test.png)
+
+#### Select All Test
+
+![Select All Test](screenshots/version3/03_select_all_test.png)
+
+#### Clear Selection Test
+
+![Clear Selection Test](screenshots/version3/04_clear_selection_test.png)
+
+#### Staggered Takeoff Simulation
+
+![Staggered Takeoff Simulation](screenshots/version3/05_staggered_takeoff_sim.png)
+
+#### Formation Hold Simulation
+
+![Formation Hold Simulation](screenshots/version3/06_formation_hold_sim.png)
+
+#### Emergency Land All Simulation
+
+![Emergency Land All Simulation](screenshots/version3/07_emergency_land_all.png)
+
