@@ -3,35 +3,10 @@
 # These routes are simulation-only and do not send commands to real drones.
 
 from fastapi import APIRouter
-from swarm_state import swarm_fleet, swarm_status, create_drone_record, VALID_DRONE_ROLES
+from swarm_state import swarm_fleet, swarm_status
+
 router = APIRouter()
 
-@router.post("/add_drone")
-async def add_drone(role: str = "follower"):
-    """
-    Add one new simulation-only drone to the swarm fleet.
-    This does not send commands to real drones.
-    """
-    if role not in VALID_DRONE_ROLES:
-        role = "follower"
-
-    if len(swarm_fleet) == 0:
-        new_drone_number = 1
-    else:
-        new_drone_number = max(swarm_fleet.keys()) + 1
-
-    swarm_fleet[new_drone_number] = create_drone_record(new_drone_number, role)
-
-    swarm_status["total_drones"] = len(swarm_fleet)
-    swarm_status["message"] = f"Added {swarm_fleet[new_drone_number]['drone_id']} as {role}"
-
-    return {
-        "status": "drone_added",
-        "message": swarm_status["message"],
-        "total_drones": swarm_status["total_drones"],
-        "new_drone": swarm_fleet[new_drone_number],
-        "fleet": list(swarm_fleet.values()),
-    }
 
 @router.get("/swarm_status")
 async def get_swarm_status():
