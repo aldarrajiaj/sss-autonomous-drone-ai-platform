@@ -33,6 +33,38 @@ async def add_drone(role: str = "follower"):
         "fleet": list(swarm_fleet.values()),
     }
 
+@router.post("/remove_drone")
+async def remove_drone(drone_number: int):
+    """
+    Remove one simulation-only drone from the swarm fleet.
+    This does not send commands to real drones.
+    """
+    if drone_number not in swarm_fleet:
+        swarm_status["message"] = f"Drone {drone_number} not found in swarm"
+        return {
+            "status": "failed",
+            "message": swarm_status["message"],
+            "total_drones": len(swarm_fleet),
+            "fleet": list(swarm_fleet.values()),
+        }
+
+    removed_drone = swarm_fleet.pop(drone_number)
+
+    if drone_number in swarm_status["selected_drones"]:
+        swarm_status["selected_drones"].remove(drone_number)
+
+    swarm_status["total_drones"] = len(swarm_fleet)
+    swarm_status["message"] = f"Removed {removed_drone['drone_id']} from swarm"
+
+    return {
+        "status": "drone_removed",
+        "message": swarm_status["message"],
+        "total_drones": swarm_status["total_drones"],
+        "removed_drone": removed_drone,
+        "selected_drones": swarm_status["selected_drones"],
+        "fleet": list(swarm_fleet.values()),
+    }
+
 @router.get("/swarm_status")
 async def get_swarm_status():
     return {
