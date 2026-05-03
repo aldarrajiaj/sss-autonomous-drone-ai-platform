@@ -10,27 +10,13 @@ async function refreshSwarmStatus() {
 
     const fleetTable = document.getElementById("fleetTable");
     fleetTable.innerHTML = "";
-    const droneSelect = document.getElementById("droneSelect");
-    const currentSelectedValue = droneSelect.value;
-    droneSelect.innerHTML = "";
-
-    data.fleet.forEach(drone => {
-        const option = document.createElement("option");
-        option.value = drone.nav_sys_id;
-        option.textContent = `${drone.drone_id} | MAV_SYS_ID ${drone.nav_sys_id} | Role: ${drone.role}`;
-        droneSelect.appendChild(option);
-    });
-
-    if (currentSelectedValue) {
-        droneSelect.value = currentSelectedValue;
-    }
 
     data.fleet.forEach(drone => {
         const row = document.createElement("tr");
 
         row.innerHTML = `
             <td>${drone.drone_id}</td>
-            <td>${drone.nav_sys_id}</td>
+            <td>${drone.mav_sys_id}</td>
             <td>${drone.connected}</td>
             <td>${drone.armed}</td>
             <td>${drone.in_air}</td>
