@@ -234,3 +234,44 @@ QGroundControl may still be used later as a temporary safety and setup tool duri
 
 ![Emergency Land All Simulation](screenshots/version3/07_emergency_land_all.png)
 
+
+---
+
+## Version 4 — Swarm Architecture Upgrade
+
+Version 4 improves the software architecture of the SSS AI Swarm Drone Software platform. The goal of this version is to make the project cleaner, easier to maintain, and easier to scale toward future 5-to-50 drone swarm operations.
+
+Version 4 does not add real physical drone flight commands. The platform remains simulation-first and safe for software development.
+
+### Version 4 Architecture Changes
+
+- Separated swarm state into `swarm_state.py`
+- Separated swarm backend API routes into `swarm_routes.py`
+- Moved the swarm dashboard HTML into `templates/swarm_dashboard.html`
+- Moved dashboard styling into `static/swarm_dashboard.css`
+- Moved dashboard JavaScript into `static/swarm_dashboard.js`
+- Mounted the `static/` folder in FastAPI
+- Connected the swarm router to the main FastAPI application
+- Removed duplicate swarm backend routes from `web_app.py`
+- Updated `/swarm_dashboard` to use the new Version 4 template
+- Removed the temporary `/swarm_dashboard_v4` test route after successful testing
+
+### Version 4 Project Structure
+
+```text
+sss_autonomous_drone_ai_platform/
+├── web_app.py
+├── swarm_state.py
+├── swarm_routes.py
+├── templates/
+│   └── swarm_dashboard.html
+├── static/
+│   ├── swarm_dashboard.css
+│   └── swarm_dashboard.js
+├── screenshots/
+│   └── version3/
+├── README.md
+├── start_platform.sh
+├── start_px4.sh
+├── connect_test.py
+└── takeoff_land.py
