@@ -1,10 +1,12 @@
 import asyncio
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from mavsdk import System
 from mavsdk.offboard import VelocityBodyYawspeed
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 drone = System()
 telemetry_data = {
     "connected": False,
@@ -12,6 +14,11 @@ telemetry_data = {
     "in_air": False,
     "altitude": 0
 }
+
+@app.get("/swarm_dashboard_v4", response_class=HTMLResponse)
+async def swarm_dashboard_v4():
+    with open("templates/swarm_dashboard.html", "r") as file:
+        return file.read()
 
 mission_waypoints = []
 mission_state = {

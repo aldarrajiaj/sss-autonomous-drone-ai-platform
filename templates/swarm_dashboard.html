@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSS AI Swarm Drone Software</title>
+    <link rel="stylesheet" href="/static/swarm_dashboard.css">
+</head>
+<body>
+    <h1>SSS AI Swarm Drone Software</h1>
+    <div class="subtitle">Version 4 — Swarm Architecture Upgrade | Simulation Mode</div>
+
+    <div class="panel">
+        <h2>Swarm Mission Status</h2>
+        <div class="status-box" id="swarmMessage">Loading swarm status...</div>
+    </div>
+
+    <div class="panel">
+        <h2>Swarm Control Actions</h2>
+
+        <select id="droneSelect">
+            <option value="1">SSS-DRONE-01 | MAV_SYS_ID 1</option>
+            <option value="2">SSS-DRONE-02 | MAV_SYS_ID 2</option>
+            <option value="3">SSS-DRONE-03 | MAV_SYS_ID 3</option>
+            <option value="4">SSS-DRONE-04 | MAV_SYS_ID 4</option>
+            <option value="5">SSS-DRONE-05 | MAV_SYS_ID 5</option>
+        </select>
+
+        <button class="button" onclick="selectDrone()">Select Drone</button>
+        <button class="button" onclick="selectAllDrones()">Select All</button>
+        <button class="button" onclick="clearSelection()">Clear Selection</button>
+        <br><br>
+
+        <button class="button danger" onclick="emergencyLandSelected()">Emergency Land Selected</button>
+        <button class="button danger" onclick="emergencyLandAll()">Emergency Land All</button>
+        <br><br>
+
+        <button class="button safe" onclick="staggeredTakeoffSim()">Staggered Takeoff Simulation</button>
+        <button class="button safe" onclick="formationHoldSim()">Formation Hold Simulation</button>
+    </div>
+
+    <div class="panel">
+        <h2>Fleet Panel</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Drone ID</th>
+                    <th>MAV_SYS_ID</th>
+                    <th>Connected</th>
+                    <th>Armed</th>
+                    <th>In Air</th>
+                    <th>Altitude</th>
+                    <th>Battery</th>
+                    <th>Mission State</th>
+                    <th>Formation</th>
+                    <th>Selected</th>
+                </tr>
+            </thead>
+            <tbody id="fleetTable">
+                <tr>
+                    <td colspan="10">Loading fleet data...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="/static/swarm_dashboard.js"></script>
+</body>
+</html>
+
