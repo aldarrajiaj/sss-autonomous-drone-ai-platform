@@ -45,6 +45,24 @@ async function refreshSwarmStatus() {
     });
 }
 
+async function addDrone() {
+    const role = document.getElementById("roleSelect").value;
+    await fetch(`/add_drone?role=${role}`, { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function removeSelectedDrone() {
+    const droneNumber = document.getElementById("droneSelect").value;
+
+    if (!droneNumber) {
+        alert("Please select a drone to remove.");
+        return;
+    }
+
+    await fetch(`/remove_drone?drone_number=${droneNumber}`, { method: "POST" });
+    refreshSwarmStatus();
+}
+
 async function selectDrone() {
     const droneNumber = document.getElementById("droneSelect").value;
     await fetch(`/select_drone?drone_number=${droneNumber}`, { method: "POST" });

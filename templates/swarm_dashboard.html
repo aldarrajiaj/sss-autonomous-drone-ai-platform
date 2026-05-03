@@ -19,17 +19,25 @@
     <option value="">Loading dynamic fleet...</option>
 </select>
 
-        <button class="button" onclick="selectDrone()">Select Drone</button>
-        <button class="button" onclick="selectAllDrones()">Select All</button>
-        <button class="button" onclick="clearSelection()">Clear Selection</button>
-        <br><br>
+<select id="roleSelect">
+    <option value="leader">leader</option>
+    <option value="follower" selected>follower</option>
+    <option value="reserve">reserve</option>
+</select>
 
-        <button class="button danger" onclick="emergencyLandSelected()">Emergency Land Selected</button>
-        <button class="button danger" onclick="emergencyLandAll()">Emergency Land All</button>
-        <br><br>
+<button class="button safe" onclick="addDrone()">Add Drone</button>
+<button class="button danger" onclick="removeSelectedDrone()">Remove Selected Drone</button>
 
-        <button class="button safe" onclick="staggeredTakeoffSim()">Staggered Takeoff Simulation</button>
-        <button class="button safe" onclick="formationHoldSim()">Formation Hold Simulation</button>
+<br><br>
+
+<button class="button" onclick="selectDrone()">Select Drone</button>
+<button class="button" onclick="selectAllDrones()">Select All</button>
+<button class="button" onclick="clearSelection()">Clear Selection</button>
+
+<br><br>
+
+<button class="button danger" onclick="emergencyLandSelected()">Emergency Land Selected</button>
+<button class="button danger" onclick="emergencyLandAll()">Emergency Land All</button>
     </div>
 
     <div class="panel">
