@@ -4,9 +4,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from mavsdk import System
 from mavsdk.offboard import VelocityBodyYawspeed
+from swarm_routes import router as swarm_router
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.include_router(swarm_router)
 drone = System()
 telemetry_data = {
     "connected": False,
