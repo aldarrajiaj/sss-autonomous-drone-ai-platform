@@ -17,10 +17,6 @@ telemetry_data = {
     "altitude": 0
 }
 
-@app.get("/swarm_dashboard_v4", response_class=HTMLResponse)
-async def swarm_dashboard_v4():
-    with open("templates/swarm_dashboard.html", "r") as file:
-        return file.read()
 
 mission_waypoints = []
 mission_state = {
