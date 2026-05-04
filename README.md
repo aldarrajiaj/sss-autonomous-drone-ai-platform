@@ -8,6 +8,56 @@ The current version runs in a PX4 SITL simulation environment and connects throu
 
 The long-term goal is to connect this platform to SSS-built drone hardware using PX4 or ArduPilot-compatible flight controllers, MAVLink telemetry, secure communications, and operator-supervised autonomy.
 
+## Version 6 — Swarm Simulation Expansion
+
+Version 6 expands the SSS AI Swarm Drone Software from dynamic fleet management into a simulation-only swarm mission operations system.
+
+### Version 6 Features
+
+- Simulated swarm mission assignment
+- Simulated mission start
+- Simulated mission progress advancement
+- Simulated mission reset
+- Mission state tracking:
+  - idle
+  - assigned
+  - in_progress
+  - completed
+  - emergency
+- Mission type selector:
+  - surveillance
+  - area_scan
+  - perimeter_watch
+  - search_pattern
+- Formation selector:
+  - line
+  - column
+  - wedge
+  - grid
+  - hold
+- Mission progress tracking:
+  - 0%
+  - 25%
+  - 50%
+  - 75%
+  - 100%
+- Dashboard mission simulation control panel
+- Live mission progress display
+- Fleet panel updates for mission state, formation, in-air state, and altitude
+- Simulation reset returns drones to safe idle state
+
+### Version 6 Backend Routes
+
+- `POST /assign_simulated_mission`
+- `POST /start_simulated_mission`
+- `POST /advance_simulated_mission`
+- `POST /reset_simulated_mission`
+- `GET /swarm_status`
+
+### Version 6 Safety Note
+
+Version 6 remains simulation-only. The mission assignment, mission start, mission progress, mission reset, formation selection, and dashboard mission controls update only simulated software state. They do not send real MAVSDK, MAVLink, PX4, ArduPilot, or physical drone flight commands.
+
 ## Version 5 — Dynamic Swarm Fleet Management
 
 Version 5 upgrades the SSS AI Swarm Drone Software from a fixed 5-drone simulation fleet into a dynamic simulation fleet management system.
