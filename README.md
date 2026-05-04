@@ -8,6 +8,46 @@ The current version runs in a PX4 SITL simulation environment and connects throu
 
 The long-term goal is to connect this platform to SSS-built drone hardware using PX4 or ArduPilot-compatible flight controllers, MAVLink telemetry, secure communications, and operator-supervised autonomy.
 
+## Version 5 — Dynamic Swarm Fleet Management
+
+Version 5 upgrades the SSS AI Swarm Drone Software from a fixed 5-drone simulation fleet into a dynamic simulation fleet management system.
+
+### Version 5 Features
+
+- Dynamic Add Drone feature
+- Dynamic Remove Drone feature
+- Default startup fleet remains 5 drones
+- Dynamic total drone count
+- Dynamic drone dropdown in the dashboard
+- Dynamic fleet table updates
+- Drone role support:
+  - leader
+  - follower
+  - reserve
+- Dashboard role selector
+- Dashboard Add Drone button
+- Dashboard Remove Selected Drone button
+- Backend swarm health summary
+- Dashboard swarm health summary panel
+- Simulation-only safety design
+
+### Version 5 Backend Routes
+
+- `GET /swarm_status`
+- `POST /add_drone`
+- `POST /remove_drone`
+- `POST /select_drone`
+- `POST /select_all_drones`
+- `POST /clear_selection`
+- `POST /emergency_land_selected`
+- `POST /emergency_land_all`
+- `POST /staggered_takeoff_sim`
+- `POST /formation_hold_sim`
+
+### Version 5 Safety Note
+
+Version 5 remains simulation-only. The Add Drone, Remove Drone, role selection, swarm health summary, and dashboard fleet controls update only the simulated software state. They do not send real MAVSDK, MAVLink, PX4, ArduPilot, or physical drone flight commands.
+
 ## Key Features
 
 - Browser-based drone command dashboard
