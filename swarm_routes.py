@@ -50,6 +50,46 @@ async def assign_simulated_mission(
         f"to {len(target_drones)} simulated drone(s)"
     )
 
+@router.post("/start_simulated_mission")
+async def start_simulated_mission():
+    """
+    Start the currently assigned simulation-only swarm mission.
+    This does not send commands to real drones.
+    """
+    if swarm_status["mission_state"] != "assigned":
+        swarm_status["message"] = "No assigned mission is ready to start"
+        return {
+            "status": "failed",
+            "message": swarm_status["message"],
+            "swarm_status": swarm_status,
+            "fleet": list(swarm_fleet.values()),
+        }
+
+    active_drones = []
+
+    for drone_number, drone in swarm_fleet.items():
+        if drone["mission_state"] == "assigned":
+            drone["mission_state"] = "in_progress"
+            drone["mission_progress"] = 25
+            drone["in_air"] = True
+            drone["altitude"] = 10
+            active_drones.append(drone_number)
+
+    swarm_status["mission_state"] = "in_progress"
+    swarm_status["mission_progress"] = 25
+    swarm_status["message"] = (
+        f"Started simulated {swarm_status['active_mission_type']} mission "
+        f"with {len(active_drones)} drone(s)"
+    )
+
+    return {
+        "status": "mission_started",
+        "message": swarm_status["message"],
+        "active_drones": active_drones,
+        "swarm_status": swarm_status,
+        "fleet": list(swarm_fleet.values()),
+    }
+
     return {
         "status": "mission_assigned",
         "message": swarm_status["message"],
