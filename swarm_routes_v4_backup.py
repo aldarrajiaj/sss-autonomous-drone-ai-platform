@@ -3,89 +3,16 @@
 # These routes are simulation-only and do not send commands to real drones.
 
 from fastapi import APIRouter
-from swarm_state import swarm_fleet, swarm_status, create_drone_record, VALID_DRONE_ROLES
+from swarm_state import swarm_fleet, swarm_status
+
 router = APIRouter()
 
-@router.post("/add_drone")
-async def add_drone(role: str = "follower"):
-    """
-    Add one new simulation-only drone to the swarm fleet.
-    This does not send commands to real drones.
-    """
-    if role not in VALID_DRONE_ROLES:
-        role = "follower"
-
-    if len(swarm_fleet) == 0:
-        new_drone_number = 1
-    else:
-        new_drone_number = max(swarm_fleet.keys()) + 1
-
-    swarm_fleet[new_drone_number] = create_drone_record(new_drone_number, role)
-
-    swarm_status["total_drones"] = len(swarm_fleet)
-    swarm_status["message"] = f"Added {swarm_fleet[new_drone_number]['drone_id']} as {role}"
-
-    return {
-        "status": "drone_added",
-        "message": swarm_status["message"],
-        "total_drones": swarm_status["total_drones"],
-        "new_drone": swarm_fleet[new_drone_number],
-        "fleet": list(swarm_fleet.values()),
-    }
-
-@router.post("/remove_drone")
-async def remove_drone(drone_number: int):
-    """
-    Remove one simulation-only drone from the swarm fleet.
-    This does not send commands to real drones.
-    """
-    if drone_number not in swarm_fleet:
-        swarm_status["message"] = f"Drone {drone_number} not found in swarm"
-        return {
-            "status": "failed",
-            "message": swarm_status["message"],
-            "total_drones": len(swarm_fleet),
-            "fleet": list(swarm_fleet.values()),
-        }
-
-    removed_drone = swarm_fleet.pop(drone_number)
-
-    if drone_number in swarm_status["selected_drones"]:
-        swarm_status["selected_drones"].remove(drone_number)
-
-    swarm_status["total_drones"] = len(swarm_fleet)
-    swarm_status["message"] = f"Removed {removed_drone['drone_id']} from swarm"
-
-    return {
-        "status": "drone_removed",
-        "message": swarm_status["message"],
-        "total_drones": swarm_status["total_drones"],
-        "removed_drone": removed_drone,
-        "selected_drones": swarm_status["selected_drones"],
-        "fleet": list(swarm_fleet.values()),
-    }
 
 @router.get("/swarm_status")
 async def get_swarm_status():
-    fleet_list = list(swarm_fleet.values())
-
-    health_summary = {
-        "total_drones": len(fleet_list),
-        "leader_count": sum(1 for drone in fleet_list if drone["role"] == "leader"),
-        "follower_count": sum(1 for drone in fleet_list if drone["role"] == "follower"),
-        "reserve_count": sum(1 for drone in fleet_list if drone["role"] == "reserve"),
-        "selected_count": len(swarm_status["selected_drones"]),
-        "in_air_count": sum(1 for drone in fleet_list if drone["in_air"] is True),
-        "connected_count": sum(1 for drone in fleet_list if drone["connected"] is True),
-        "simulation_only": True,
-    }
-
-    swarm_status["total_drones"] = health_summary["total_drones"]
-
     return {
         "swarm_status": swarm_status,
-        "health_summary": health_summary,
-        "fleet": fleet_list,
+        "fleet": list(swarm_fleet.values())
     }
 
 

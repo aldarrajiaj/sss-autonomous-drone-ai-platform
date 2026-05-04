@@ -6,43 +6,35 @@
 </head>
 <body>
     <h1>SSS AI Swarm Drone Software</h1>
-    <div class="subtitle">Version 5 — Dynamic Swarm Fleet Management | Simulation Mode</div>
+    <div class="subtitle">Version 4 — Swarm Architecture Upgrade | Simulation Mode</div>
+
     <div class="panel">
         <h2>Swarm Mission Status</h2>
         <div class="status-box" id="swarmMessage">Loading swarm status...</div>
-    </div> 
-
-<div class="panel">
-    <h2>Swarm Health Summary</h2>
-    <div class="status-box" id="swarmHealthSummary">Loading swarm health summary...</div>
-</div>
+    </div>
 
     <div class="panel">
         <h2>Swarm Control Actions</h2>
 
-<select id="droneSelect">
-    <option value="">Loading dynamic fleet...</option>
-</select>
+        <select id="droneSelect">
+            <option value="1">SSS-DRONE-01 | MAV_SYS_ID 1</option>
+            <option value="2">SSS-DRONE-02 | MAV_SYS_ID 2</option>
+            <option value="3">SSS-DRONE-03 | MAV_SYS_ID 3</option>
+            <option value="4">SSS-DRONE-04 | MAV_SYS_ID 4</option>
+            <option value="5">SSS-DRONE-05 | MAV_SYS_ID 5</option>
+        </select>
 
-<select id="roleSelect">
-    <option value="leader">leader</option>
-    <option value="follower" selected>follower</option>
-    <option value="reserve">reserve</option>
-</select>
+        <button class="button" onclick="selectDrone()">Select Drone</button>
+        <button class="button" onclick="selectAllDrones()">Select All</button>
+        <button class="button" onclick="clearSelection()">Clear Selection</button>
+        <br><br>
 
-<button class="button safe" onclick="addDrone()">Add Drone</button>
-<button class="button danger" onclick="removeSelectedDrone()">Remove Selected Drone</button>
+        <button class="button danger" onclick="emergencyLandSelected()">Emergency Land Selected</button>
+        <button class="button danger" onclick="emergencyLandAll()">Emergency Land All</button>
+        <br><br>
 
-<br><br>
-
-<button class="button" onclick="selectDrone()">Select Drone</button>
-<button class="button" onclick="selectAllDrones()">Select All</button>
-<button class="button" onclick="clearSelection()">Clear Selection</button>
-
-<br><br>
-
-<button class="button danger" onclick="emergencyLandSelected()">Emergency Land Selected</button>
-<button class="button danger" onclick="emergencyLandAll()">Emergency Land All</button>
+        <button class="button safe" onclick="staggeredTakeoffSim()">Staggered Takeoff Simulation</button>
+        <button class="button safe" onclick="formationHoldSim()">Formation Hold Simulation</button>
     </div>
 
     <div class="panel">

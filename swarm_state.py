@@ -1,11 +1,21 @@
-# Version 4 - Swarm Architecture Upgrade
+# Version 5: Dynamic Swarm Fleet Management
 # Centralized simulation-only swarm state.
 # This file does not send commands to real drones.
 
-swarm_fleet = {
-    1: {
-        "drone_id": "SSS-DRONE-01",
-        "mav_sys_id": 1,
+VALID_DRONE_ROLES = ["leader", "follower", "reserve"]
+
+
+def create_drone_record(drone_number, role="follower"):
+    """
+    Create one simulation-only drone record.
+    No real MAVSDK or hardware command is sent from this file.
+    """
+    if role not in VALID_DRONE_ROLES:
+        role = "follower"
+
+    return {
+        "drone_id": f"SSS-DRONE-{drone_number:02d}",
+        "nav_sys_id": drone_number,
         "connected": False,
         "armed": False,
         "in_air": False,
@@ -13,61 +23,25 @@ swarm_fleet = {
         "battery": "SIM",
         "mission_state": "idle",
         "formation": "none",
-        "selected": False
-    },
-    2: {
-        "drone_id": "SSS-DRONE-02",
-        "mav_sys_id": 2,
-        "connected": False,
-        "armed": False,
-        "in_air": False,
-        "altitude": 0,
-        "battery": "SIM",
-        "mission_state": "idle",
-        "formation": "none",
-        "selected": False
-    },
-    3: {
-        "drone_id": "SSS-DRONE-03",
-        "mav_sys_id": 3,
-        "connected": False,
-        "armed": False,
-        "in_air": False,
-        "altitude": 0,
-        "battery": "SIM",
-        "mission_state": "idle",
-        "formation": "none",
-        "selected": False
-    },
-    4: {
-        "drone_id": "SSS-DRONE-04",
-        "mav_sys_id": 4,
-        "connected": False,
-        "armed": False,
-        "in_air": False,
-        "altitude": 0,
-        "battery": "SIM",
-        "mission_state": "idle",
-        "formation": "none",
-        "selected": False
-    },
-    5: {
-        "drone_id": "SSS-DRONE-05",
-        "mav_sys_id": 5,
-        "connected": False,
-        "armed": False,
-        "in_air": False,
-        "altitude": 0,
-        "battery": "SIM",
-        "mission_state": "idle",
-        "formation": "none",
-        "selected": False
+        "selected": False,
+        "role": role,
     }
+
+
+# Default Version 5 starting fleet.
+# We keep 5 drones at startup, but the fleet can grow or shrink dynamically later.
+swarm_fleet = {
+    1: create_drone_record(1, "leader"),
+    2: create_drone_record(2, "follower"),
+    3: create_drone_record(3, "follower"),
+    4: create_drone_record(4, "follower"),
+    5: create_drone_record(5, "reserve"),
 }
+
 
 swarm_status = {
     "mode": "simulation",
-    "total_drones": 5,
+    "total_drones": len(swarm_fleet),
     "selected_drones": [],
-    "message": "Swarm Control Foundation initialized in simulation mode"
+    "message": "Version 5 dynamic swarm fleet initialized in simulation mode",
 }

@@ -8,40 +8,15 @@ async function refreshSwarmStatus() {
         " | Total Drones: " + data.swarm_status.total_drones +
         " | Selected: " + JSON.stringify(data.swarm_status.selected_drones);
 
-const health = data.health_summary;
-
-document.getElementById("swarmHealthSummary").innerText =
-    "Total: " + health.total_drones +
-    " | Leaders: " + health.leader_count +
-    " | Followers: " + health.follower_count +
-    " | Reserves: " + health.reserve_count +
-    " | Selected: " + health.selected_count +
-    " | In Air: " + health.in_air_count +
-    " | Connected: " + health.connected_count +
-    " | Simulation Only: " + health.simulation_only;
     const fleetTable = document.getElementById("fleetTable");
     fleetTable.innerHTML = "";
-    const droneSelect = document.getElementById("droneSelect");
-    const currentSelectedValue = droneSelect.value;
-    droneSelect.innerHTML = "";
-
-    data.fleet.forEach(drone => {
-        const option = document.createElement("option");
-        option.value = drone.nav_sys_id;
-        option.textContent = `${drone.drone_id} | MAV_SYS_ID ${drone.nav_sys_id} | Role: ${drone.role}`;
-        droneSelect.appendChild(option);
-    });
-
-    if (currentSelectedValue) {
-        droneSelect.value = currentSelectedValue;
-    }
 
     data.fleet.forEach(drone => {
         const row = document.createElement("tr");
 
         row.innerHTML = `
             <td>${drone.drone_id}</td>
-            <td>${drone.nav_sys_id}</td>
+            <td>${drone.mav_sys_id}</td>
             <td>${drone.connected}</td>
             <td>${drone.armed}</td>
             <td>${drone.in_air}</td>
@@ -54,24 +29,6 @@ document.getElementById("swarmHealthSummary").innerText =
 
         fleetTable.appendChild(row);
     });
-}
-
-async function addDrone() {
-    const role = document.getElementById("roleSelect").value;
-    await fetch(`/add_drone?role=${role}`, { method: "POST" });
-    refreshSwarmStatus();
-}
-
-async function removeSelectedDrone() {
-    const droneNumber = document.getElementById("droneSelect").value;
-
-    if (!droneNumber) {
-        alert("Please select a drone to remove.");
-        return;
-    }
-
-    await fetch(`/remove_drone?drone_number=${droneNumber}`, { method: "POST" });
-    refreshSwarmStatus();
 }
 
 async function selectDrone() {
