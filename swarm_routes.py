@@ -13,6 +13,7 @@ from swarm_state import (
 )
 router = APIRouter()
 
+
 @router.post("/assign_simulated_mission")
 async def assign_simulated_mission(
     mission_type: str = "surveillance",
@@ -49,6 +50,15 @@ async def assign_simulated_mission(
         f"Assigned {mission_type} mission using {formation} formation "
         f"to {len(target_drones)} simulated drone(s)"
     )
+
+    return {
+        "status": "mission_assigned",
+        "message": swarm_status["message"],
+        "target_drones": target_drones,
+        "swarm_status": swarm_status,
+        "fleet": list(swarm_fleet.values()),
+    }
+
 
 @router.post("/start_simulated_mission")
 async def start_simulated_mission():
@@ -90,10 +100,50 @@ async def start_simulated_mission():
         "fleet": list(swarm_fleet.values()),
     }
 
+
+@router.post("/advance_simulated_mission")
+async def advance_simulated_mission():
+    """
+    Advance the current simulation-only swarm mission.
+    This does not send commands to real drones.
+    """
+    if swarm_status["mission_state"] != "in_progress":
+        swarm_status["message"] = "No simulated mission is currently in progress"
+        return {
+            "status": "failed",
+            "message": swarm_status["message"],
+            "swarm_status": swarm_status,
+            "fleet": list(swarm_fleet.values()),
+        }
+
+    new_progress = min(swarm_status["mission_progress"] + 25, 100)
+    swarm_status["mission_progress"] = new_progress
+
+    completed_drones = []
+
+    for drone_number, drone in swarm_fleet.items():
+        if drone["mission_state"] == "in_progress":
+            drone["mission_progress"] = new_progress
+
+            if new_progress >= 100:
+                drone["mission_state"] = "completed"
+                drone["in_air"] = False
+                drone["altitude"] = 0
+                completed_drones.append(drone_number)
+
+    if new_progress >= 100:
+        swarm_status["mission_state"] = "completed"
+        swarm_status["message"] = "Simulated swarm mission completed"
+        route_status = "mission_completed"
+    else:
+        swarm_status["message"] = f"Simulated swarm mission advanced to {new_progress}%"
+        route_status = "mission_advanced"
+
     return {
-        "status": "mission_assigned",
+        "status": route_status,
         "message": swarm_status["message"],
-        "target_drones": target_drones,
+        "mission_progress": swarm_status["mission_progress"],
+        "completed_drones": completed_drones,
         "swarm_status": swarm_status,
         "fleet": list(swarm_fleet.values()),
     }
