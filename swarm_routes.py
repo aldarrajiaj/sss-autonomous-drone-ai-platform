@@ -3,8 +3,60 @@
 # These routes are simulation-only and do not send commands to real drones.
 
 from fastapi import APIRouter
-from swarm_state import swarm_fleet, swarm_status, create_drone_record, VALID_DRONE_ROLES
+from swarm_state import (
+    swarm_fleet,
+    swarm_status,
+    create_drone_record,
+    VALID_DRONE_ROLES,
+    VALID_MISSION_TYPES,
+    VALID_FORMATIONS,
+)
 router = APIRouter()
+
+@router.post("/assign_simulated_mission")
+async def assign_simulated_mission(
+    mission_type: str = "surveillance",
+    formation: str = "line",
+):
+    """
+    Assign a simulation-only swarm mission.
+    This does not send commands to real drones.
+    """
+    if mission_type not in VALID_MISSION_TYPES:
+        mission_type = "surveillance"
+
+    if formation not in VALID_FORMATIONS:
+        formation = "line"
+
+    if len(swarm_status["selected_drones"]) > 0:
+        target_drones = swarm_status["selected_drones"]
+    else:
+        target_drones = list(swarm_fleet.keys())
+
+    for index, drone_number in enumerate(target_drones, start=1):
+        if drone_number in swarm_fleet:
+            swarm_fleet[drone_number]["mission_state"] = "assigned"
+            swarm_fleet[drone_number]["mission_progress"] = 0
+            swarm_fleet[drone_number]["mission_type"] = mission_type
+            swarm_fleet[drone_number]["formation"] = formation
+            swarm_fleet[drone_number]["formation_position"] = f"{formation}-{index}"
+
+    swarm_status["active_mission_type"] = mission_type
+    swarm_status["active_formation"] = formation
+    swarm_status["mission_progress"] = 0
+    swarm_status["mission_state"] = "assigned"
+    swarm_status["message"] = (
+        f"Assigned {mission_type} mission using {formation} formation "
+        f"to {len(target_drones)} simulated drone(s)"
+    )
+
+    return {
+        "status": "mission_assigned",
+        "message": swarm_status["message"],
+        "target_drones": target_drones,
+        "swarm_status": swarm_status,
+        "fleet": list(swarm_fleet.values()),
+    }
 
 @router.post("/add_drone")
 async def add_drone(role: str = "follower"):
