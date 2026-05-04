@@ -8,6 +8,16 @@ async function refreshSwarmStatus() {
         " | Total Drones: " + data.swarm_status.total_drones +
         " | Selected: " + JSON.stringify(data.swarm_status.selected_drones);
 
+const missionProgressBox = document.getElementById("missionProgressBox");
+
+if (missionProgressBox) {
+    missionProgressBox.innerText =
+        "Mission State: " + data.swarm_status.mission_state +
+        " | Progress: " + data.swarm_status.mission_progress + "%" +
+        " | Mission Type: " + data.swarm_status.active_mission_type +
+        " | Formation: " + data.swarm_status.active_formation;
+}
+
 const health = data.health_summary;
 
 document.getElementById("swarmHealthSummary").innerText =
@@ -97,6 +107,32 @@ async function emergencyLandSelected() {
 
 async function emergencyLandAll() {
     await fetch("/emergency_land_all", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function assignSimulatedMission() {
+    const missionType = document.getElementById("missionTypeSelect").value;
+    const formation = document.getElementById("formationSelect").value;
+
+    await fetch(`/assign_simulated_mission?mission_type=${missionType}&formation=${formation}`, {
+        method: "POST"
+    });
+
+    refreshSwarmStatus();
+}
+
+async function startSimulatedMission() {
+    await fetch("/start_simulated_mission", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function advanceSimulatedMission() {
+    await fetch("/advance_simulated_mission", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function resetSimulatedMission() {
+    await fetch("/reset_simulated_mission", { method: "POST" });
     refreshSwarmStatus();
 }
 
