@@ -100,6 +100,32 @@ async function emergencyLandAll() {
     refreshSwarmStatus();
 }
 
+async function assignSimulatedMission() {
+    const missionType = document.getElementById("missionTypeSelect").value;
+    const formation = document.getElementById("formationSelect").value;
+
+    await fetch(`/assign_simulated_mission?mission_type=${missionType}&formation=${formation}`, {
+        method: "POST"
+    });
+
+    refreshSwarmStatus();
+}
+
+async function startSimulatedMission() {
+    await fetch("/start_simulated_mission", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function advanceSimulatedMission() {
+    await fetch("/advance_simulated_mission", { method: "POST" });
+    refreshSwarmStatus();
+}
+
+async function resetSimulatedMission() {
+    await fetch("/reset_simulated_mission", { method: "POST" });
+    refreshSwarmStatus();
+}
+
 async function staggeredTakeoffSim() {
     await fetch("/staggered_takeoff_sim", { method: "POST" });
     refreshSwarmStatus();

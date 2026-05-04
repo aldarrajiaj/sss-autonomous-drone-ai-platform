@@ -45,6 +45,35 @@
 <button class="button danger" onclick="emergencyLandAll()">Emergency Land All</button>
     </div>
 
+<div class="panel">
+    <h2>Version 6 Mission Simulation Controls</h2>
+
+    <select id="missionTypeSelect">
+        <option value="surveillance">surveillance</option>
+        <option value="area_scan">area_scan</option>
+        <option value="perimeter_watch">perimeter_watch</option>
+        <option value="search_pattern">search_pattern</option>
+    </select>
+
+    <select id="formationSelect">
+        <option value="line">line</option>
+        <option value="column">column</option>
+        <option value="wedge">wedge</option>
+        <option value="grid">grid</option>
+        <option value="hold">hold</option>
+    </select>
+
+    <button class="button safe" onclick="assignSimulatedMission()">Assign Mission</button>
+    <button class="button safe" onclick="startSimulatedMission()">Start Mission</button>
+    <button class="button" onclick="advanceSimulatedMission()">Advance Mission</button>
+    <button class="button danger" onclick="resetSimulatedMission()">Reset Mission</button>
+
+    <br><br>
+
+    <div class="status-box" id="missionProgressBox">Mission progress will appear here.</div>
+</div>
+
+
     <div class="panel">
         <h2>Fleet Panel</h2>
         <table>
