@@ -4,30 +4,6 @@
 
 VALID_DRONE_ROLES = ["leader", "follower", "reserve"]
 
-VALID_MISSION_STATES = [
-    "idle",
-    "ready",
-    "assigned",
-    "in_progress",
-    "completed",
-    "emergency",
-]
-
-VALID_MISSION_TYPES = [
-    "surveillance",
-    "area_scan",
-    "perimeter_watch",
-    "search_pattern",
-]
-
-VALID_FORMATIONS = [
-    "line",
-    "column",
-    "wedge",
-    "grid",
-    "hold",
-]
-
 
 def create_drone_record(drone_number, role="follower"):
     """
@@ -46,12 +22,9 @@ def create_drone_record(drone_number, role="follower"):
         "altitude": 0,
         "battery": "SIM",
         "mission_state": "idle",
-	"mission_progress": 0,
-	"mission_type": "none",
-	"formation": "none",
-	"formation_position": "unassigned",
-	"selected": False,
-	"role": role,
+        "formation": "none",
+        "selected": False,
+        "role": role,
     }
 
 
@@ -70,9 +43,5 @@ swarm_status = {
     "mode": "simulation",
     "total_drones": len(swarm_fleet),
     "selected_drones": [],
-    "active_mission_type": "none",
-    "active_formation": "none",
-    "mission_progress": 0,
-    "mission_state": "idle",
-    "message": "Version 6 swarm simulation expansion initialized in simulation mode",
+    "message": "Version 5 dynamic swarm fleet initialized in simulation mode",
 }
