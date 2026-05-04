@@ -8,6 +8,17 @@ async function refreshSwarmStatus() {
         " | Total Drones: " + data.swarm_status.total_drones +
         " | Selected: " + JSON.stringify(data.swarm_status.selected_drones);
 
+const health = data.health_summary;
+
+document.getElementById("swarmHealthSummary").innerText =
+    "Total: " + health.total_drones +
+    " | Leaders: " + health.leader_count +
+    " | Followers: " + health.follower_count +
+    " | Reserves: " + health.reserve_count +
+    " | Selected: " + health.selected_count +
+    " | In Air: " + health.in_air_count +
+    " | Connected: " + health.connected_count +
+    " | Simulation Only: " + health.simulation_only;
     const fleetTable = document.getElementById("fleetTable");
     fleetTable.innerHTML = "";
     const droneSelect = document.getElementById("droneSelect");
