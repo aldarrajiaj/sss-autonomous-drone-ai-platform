@@ -67,9 +67,25 @@ async def remove_drone(drone_number: int):
 
 @router.get("/swarm_status")
 async def get_swarm_status():
+    fleet_list = list(swarm_fleet.values())
+
+    health_summary = {
+        "total_drones": len(fleet_list),
+        "leader_count": sum(1 for drone in fleet_list if drone["role"] == "leader"),
+        "follower_count": sum(1 for drone in fleet_list if drone["role"] == "follower"),
+        "reserve_count": sum(1 for drone in fleet_list if drone["role"] == "reserve"),
+        "selected_count": len(swarm_status["selected_drones"]),
+        "in_air_count": sum(1 for drone in fleet_list if drone["in_air"] is True),
+        "connected_count": sum(1 for drone in fleet_list if drone["connected"] is True),
+        "simulation_only": True,
+    }
+
+    swarm_status["total_drones"] = health_summary["total_drones"]
+
     return {
         "swarm_status": swarm_status,
-        "fleet": list(swarm_fleet.values())
+        "health_summary": health_summary,
+        "fleet": fleet_list,
     }
 
 
