@@ -8,6 +8,16 @@ async function refreshSwarmStatus() {
         " | Total Drones: " + data.swarm_status.total_drones +
         " | Selected: " + JSON.stringify(data.swarm_status.selected_drones);
 
+const missionProgressBox = document.getElementById("missionProgressBox");
+
+if (missionProgressBox) {
+    missionProgressBox.innerText =
+        "Mission State: " + data.swarm_status.mission_state +
+        " | Progress: " + data.swarm_status.mission_progress + "%" +
+        " | Mission Type: " + data.swarm_status.active_mission_type +
+        " | Formation: " + data.swarm_status.active_formation;
+}
+
 const health = data.health_summary;
 
 document.getElementById("swarmHealthSummary").innerText =

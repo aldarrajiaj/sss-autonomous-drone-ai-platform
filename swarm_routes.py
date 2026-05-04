@@ -13,7 +13,6 @@ from swarm_state import (
 )
 router = APIRouter()
 
-
 @router.post("/assign_simulated_mission")
 async def assign_simulated_mission(
     mission_type: str = "surveillance",
@@ -116,34 +115,6 @@ async def advance_simulated_mission():
             "fleet": list(swarm_fleet.values()),
         }
 
-@router.post("/reset_simulated_mission")
-async def reset_simulated_mission():
-    """
-    Reset the simulation-only swarm mission state.
-    This does not send commands to real drones.
-    """
-    for drone in swarm_fleet.values():
-        drone["mission_state"] = "idle"
-        drone["mission_progress"] = 0
-        drone["mission_type"] = "none"
-        drone["formation"] = "none"
-        drone["formation_position"] = "unassigned"
-        drone["in_air"] = False
-        drone["altitude"] = 0
-
-    swarm_status["active_mission_type"] = "none"
-    swarm_status["active_formation"] = "none"
-    swarm_status["mission_progress"] = 0
-    swarm_status["mission_state"] = "idle"
-    swarm_status["message"] = "Simulated swarm mission reset to idle"
-
-    return {
-        "status": "mission_reset",
-        "message": swarm_status["message"],
-        "swarm_status": swarm_status,
-        "fleet": list(swarm_fleet.values()),
-    }
-
     new_progress = min(swarm_status["mission_progress"] + 25, 100)
     swarm_status["mission_progress"] = new_progress
 
@@ -172,6 +143,35 @@ async def reset_simulated_mission():
         "message": swarm_status["message"],
         "mission_progress": swarm_status["mission_progress"],
         "completed_drones": completed_drones,
+        "swarm_status": swarm_status,
+        "fleet": list(swarm_fleet.values()),
+    }
+
+
+@router.post("/reset_simulated_mission")
+async def reset_simulated_mission():
+    """
+    Reset the simulation-only swarm mission state.
+    This does not send commands to real drones.
+    """
+    for drone in swarm_fleet.values():
+        drone["mission_state"] = "idle"
+        drone["mission_progress"] = 0
+        drone["mission_type"] = "none"
+        drone["formation"] = "none"
+        drone["formation_position"] = "unassigned"
+        drone["in_air"] = False
+        drone["altitude"] = 0
+
+    swarm_status["active_mission_type"] = "none"
+    swarm_status["active_formation"] = "none"
+    swarm_status["mission_progress"] = 0
+    swarm_status["mission_state"] = "idle"
+    swarm_status["message"] = "Simulated swarm mission reset to idle"
+
+    return {
+        "status": "mission_reset",
+        "message": swarm_status["message"],
         "swarm_status": swarm_status,
         "fleet": list(swarm_fleet.values()),
     }
